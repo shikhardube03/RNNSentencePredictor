@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def initalize_with_zeroes(shape):
     return np.zeros(shape)
@@ -11,6 +11,8 @@ class RNN:
         self.vocab_size = vocab_size
         self.seq_length = seq_length
         self.learning_rate = learning_rate
+        self.iterations = []
+        self.losses = []
         # model parameters
         self.U = np.random.uniform(-np.sqrt(1./vocab_size), np.sqrt(1./vocab_size), (hidden_size, vocab_size))
         self.V = np.random.uniform(-np.sqrt(1./hidden_size), np.sqrt(1./hidden_size), (vocab_size, hidden_size))
@@ -104,7 +106,7 @@ class RNN:
 
     def train(self, data_reader):
             iter_num = 0
-            threshold = 0.01
+            threshold = 0.25
             smooth_loss = -np.log(1.0/data_reader.vocab_size)*self.seq_length
             hprev = 0
             while (smooth_loss > threshold):
@@ -116,16 +118,17 @@ class RNN:
                 loss = self.loss(ps, targets)
                 self.update_model(dU, dW, dV, db, dc)
                 smooth_loss = smooth_loss*0.999 + loss*0.001
+                self.losses.append(smooth_loss)
                 hprev = hs[self.seq_length-1]
                 if not iter_num%500:
                     sample_ix = self.sample(hprev, inputs[0], 200)
                     print( ''.join(data_reader.ix_to_char[ix] for ix in sample_ix))
                     print( "\n\niter :%d, loss:%f"%(iter_num, smooth_loss))
                 iter_num += 1
+            self.plot_loss(self.losses)
 
     def predict(self, data_reader, start, n):
-
-        #initialize input vector
+        # initialize input vector
         x = initalize_with_zeroes((self.vocab_size, 1))
         chars = [ch for ch in start]
         ixes = []
@@ -140,9 +143,22 @@ class RNN:
             h = np.tanh(np.dot(self.U, x) + np.dot(self.W, h) + self.b)
             y = np.dot(self.V, h) + self.c
             p = np.exp(y)/np.sum(np.exp(y))
-            ix = np.random.choice(range(self.vocab_size), p = p.ravel())
-            x = initalize_with_zeroes((self.vocab_size,1))
+            ix = np.random.choice(range(self.vocab_size), p=p.ravel())
+            x = initalize_with_zeroes((self.vocab_size, 1))
             x[ix] = 1
             ixes.append(ix)
+
+            # store iteration and loss
+            self.iterations.append(t+1)
+            self.losses.append(-np.log(p[ix]))
+
         txt = ''.join(data_reader.ix_to_char[i] for i in ixes)
-        return txt
+        return txt, self.iterations, self.losses
+
+    def plot_loss(self, loss_values):
+        plt.plot(loss_values)
+        plt.title('Training Loss Over Time')
+        plt.xlabel('Iteration')
+        plt.ylabel('Loss')
+        plt.show()
+
