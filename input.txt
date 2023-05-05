@@ -1,0 +1,1 @@
+this is some basic ass words that the RNN can hopefully predict. Let see how it perfroms in the prediction task
