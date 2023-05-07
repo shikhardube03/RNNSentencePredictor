@@ -87,10 +87,6 @@ class RNN:
                 
                 
     def sample(self, h, seed_ix, n):
-            """
-            sample a sequence of integers from the model
-            h is memory state, seed_ix is seed letter from the first time step
-            """
             x = initalize_with_zeroes((self.vocab_size, 1))
             x[seed_ix] = 1
             ixes = []

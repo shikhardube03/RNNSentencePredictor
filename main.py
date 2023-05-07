@@ -8,6 +8,6 @@ trainedRNN = RNN(hidden_size=100, vocab_size=data_reader.vocab_size,seq_length=2
 trainedRNN.train(data_reader)
 
 
-# trainedRNN.predict(data_reader, 'basic', 1000)
+trainedRNN.predict(data_reader, 'basic', 1000)
 # trainedRNN.plot_loss(trainedRNN.losses)
 # trainedRNN.predict(data_reader, 'image', 50)
